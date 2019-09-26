@@ -32,6 +32,8 @@ under the License.
 
       <cluster-password>secret</cluster-password>
 
+      <jmx-management-enabled>true</jmx-management-enabled>
+
       <ha-policy>
          <replication>
             <master>
@@ -77,13 +79,15 @@ under the License.
 
       <security-settings>
          <!--security for example queue-->
-         <security-setting match="exampleQueue">
+         <security-setting match="#">
             <permission roles="guest" type="createDurableQueue"/>
             <permission roles="guest" type="deleteDurableQueue"/>
             <permission roles="guest" type="createNonDurableQueue"/>
             <permission roles="guest" type="deleteNonDurableQueue"/>
             <permission roles="guest" type="consume"/>
             <permission roles="guest" type="send"/>
+            <permission roles="guest" type="createAddress"/>
+            <permission roles="guest" type="manage"/>
          </security-setting>
       </security-settings>
 
