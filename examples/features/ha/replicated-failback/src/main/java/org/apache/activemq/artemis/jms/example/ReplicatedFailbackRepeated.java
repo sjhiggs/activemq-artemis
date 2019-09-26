@@ -70,53 +70,42 @@ public class ReplicatedFailbackRepeated {
          properties.put("connectionFactory.ConnectionFactory", "tcp://localhost:61617");
          initialContext1 = new InitialContext(properties);
 
-//         Thread.sleep(100000);
+         //TEST 1: start up master/slave, server0 should be live, server1 should te backup
          Boolean server0Live = isBrokerLive(JMX_URL_SERVER0);
          Boolean server1Live = isBrokerLive(JMX_URL_SERVER1);
          System.out.println("TEST 1: server0Live: " + server0Live + " :: server1Live: " + server1Live);
 
+         //TEST 2: kill the master, server0 is now unavailable, server1 becomes live
          ServerUtil.killServer(server0);
          Thread.sleep(5000);
-         //server0Live = isBrokerLive(JMX_URL_SERVER0);
          server1Live = isBrokerLive(JMX_URL_SERVER1);
          System.out.println("TEST 2: server1Live: " + server1Live);
 
+         //TEST 3: start up the master, server0 should be live, server1 should be backup
          server0 = ServerUtil.startServer(server0Path, ReplicatedFailbackRepeated.class.getSimpleName() + "0", 0, 30000);
-         Thread.sleep(30000);
-         server0Live = isBrokerLive(JMX_URL_SERVER0, 3);
-         server1Live = isBrokerLive(JMX_URL_SERVER1, 3);
+         Thread.sleep(20000);
+         server0Live = isBrokerLive(JMX_URL_SERVER0);
+         server1Live = isBrokerLive(JMX_URL_SERVER1);
          System.out.println("TEST 3: server0Live: " + server0Live + " :: server1Live: " + server1Live);
 
       } finally {
 
-         //ServerUtil.killServer(server0);
-         //ServerUtil.killServer(server1);
+         ServerUtil.killServer(server0);
+         ServerUtil.killServer(server1);
       }
    }
 
-   private Boolean isBrokerLive(String jmxUrl, int numAttempts) {
+   public Boolean isBrokerLive(String jmxUrl) {
       Boolean isLive = null;
-      int curr = 0;
-      while((isLive == null) && (curr < numAttempts)) {
-         try {
-            isLive = isBrokerLive(jmxUrl);
-         } catch (Exception e) {
-            System.out.println("jmx attempt failed: " + e.getMessage());
-            System.out.flush();
-            try {
-               Thread.sleep(1000000);
-            } catch (InterruptedException ex) {
-               ex.printStackTrace();
-            }
-         } finally {
-            curr++;
-         }
-      }
-
+      try {
+         isLive = isBrokerLiveInternal(jmxUrl);
+      } catch (Exception e) {
+         System.out.println("jmx attempt failed: " + e.getMessage());
+      } 
       return isLive;
    }
 
-   private Boolean isBrokerLive(String jmxUrl) throws Exception {
+   private Boolean isBrokerLiveInternal(String jmxUrl) throws Exception {
 
       System.out.println("querying JMX server: " + jmxUrl);
       HashMap env = new HashMap();
