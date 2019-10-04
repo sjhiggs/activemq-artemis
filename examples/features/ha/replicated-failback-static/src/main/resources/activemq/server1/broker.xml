@@ -32,6 +32,8 @@ under the License.
 
       <cluster-password>secret</cluster-password>
 
+      <jmx-management-enabled>true</jmx-management-enabled>
+
       <ha-policy>
          <replication>
             <slave>
