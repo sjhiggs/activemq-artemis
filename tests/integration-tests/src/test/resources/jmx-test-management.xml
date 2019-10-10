@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 <management-context xmlns="http://activemq.org/schema">
-   <connector connector-port="10099" connector-host="127.0.0.1" rmi-registry-port="10098" />
+   <connector connector-port="10099" connector-host="localhost" rmi-registry-port="10098" />
    <authorisation>
       <whitelist>
          <entry domain="hawtio"/>

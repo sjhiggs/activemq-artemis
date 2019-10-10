@@ -235,7 +235,6 @@ public class WebServerComponent implements ExternalComponent {
    }
 
    public void internalStop() throws Exception {
-      System.out.println("Stopping");
       server.stop();
       if (webContexts != null) {
          cleanupWebTemporaryFiles(webContexts);
