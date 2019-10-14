@@ -51,7 +51,7 @@ public class ReplicatedFailbackRepeated {
    private static final String JMX_URL_SERVER7 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1799/jmxrmi";
    private static final String JMX_URL_SERVER8 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1899/jmxrmi";
 
-   private static int JMX_TIMEOUT = 60000;
+   private static int JMX_TIMEOUT = 120000;
 
    public static void main(final String[] args) throws Exception {
       new ReplicatedFailbackRepeated().runTest(args[0], new Integer(args[1]));
@@ -90,15 +90,15 @@ public class ReplicatedFailbackRepeated {
             System.out.println("current test iterator:: " + i);
 
             //allow server1 to fully replicate with server0 before killing server0 again
-            System.out.println("waiting for 30 seconds");
-            Thread.sleep(30000);
+            System.out.println("waiting for 5 seconds");
+            Thread.sleep(5000);
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
             ServerUtil.killServer(server0);
             assertBrokerLive(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
 
-            System.out.println("waiting for 30 seconds");
-            Thread.sleep(30000);
+            System.out.println("waiting for 5 seconds");
+            Thread.sleep(5000);
             
             //TEST 2: start up the master, server0 should be live, server1 should be backup
             server0 = ServerUtil.startServer(baseDir+"/target/server0", "server0", 0, 120000);
