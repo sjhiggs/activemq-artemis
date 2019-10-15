@@ -16,8 +16,7 @@
  */
 package org.apache.activemq.artemis.jms.example;
 
-import javax.json.JsonReader;
-import javax.json.JsonValue;
+import javax.json.*;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
@@ -33,6 +32,7 @@ import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.util.ServerUtil;
 import org.apache.activemq.artemis.utils.JsonLoader;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class ReplicatedFailbackRepeated {
 
@@ -95,15 +95,9 @@ public class ReplicatedFailbackRepeated {
             System.out.println("current test iterator:: " + i);
 
             //allow server1 to fully replicate with server0 before killing server0 again
-            System.out.println("waiting for 30 seconds");
-
-            String topology = listBrokerTopology(JMX_URL_SERVER1, "server1", 10_000);
-            JsonValue object = readJson(topology);
-
-            System.out.println("Object::" + object);
-
-            System.out.println("Topology :: " + topology);
-            Thread.sleep(30000);
+            System.out.println("waiting for 5 seconds");
+            Thread.sleep(5000);
+            assertNumClusterBrokers(5, 4, 120000);
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
             ServerUtil.killServer(server0);
@@ -111,9 +105,13 @@ public class ReplicatedFailbackRepeated {
 
             System.out.println("waiting for 5 seconds");
             Thread.sleep(5000);
+            assertNumClusterBrokers(5, 3, 120000);
 
             //TEST 2: start up the master, server0 should be live, server1 should be backup
             server0 = ServerUtil.startServer(baseDir + "/target/server0", "server0", 0, 120000);
+            System.out.println("waiting for 5 seconds");
+            Thread.sleep(5000);
+            assertNumClusterBrokers(5, 4,120000);
             assertBrokerLive(JMX_URL_SERVER0, "server0", JMX_TIMEOUT);
             assertBrokerBackup(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
 
@@ -133,9 +131,60 @@ public class ReplicatedFailbackRepeated {
       }
    }
 
-   private JsonValue readJson(String topology) {
+   private void assertNumClusterBrokers(int numLiveExpected, int numBackupExpected, int timeout) throws InterruptedException {
+      long realTimeout = System.currentTimeMillis() + timeout;
+      while (System.currentTimeMillis() < realTimeout) {
+         try {
+            String topology = listBrokerTopology(JMX_URL_SERVER1, "server1", 10_000);
+            JsonArray clusterNetworkArray = readJson(topology);
+            int numLiveActual = getNumLiveBrokers(clusterNetworkArray);
+            int numBackupActual = getNumBackupBrokers(clusterNetworkArray);
+            if(numLiveActual != numLiveExpected || numBackupActual != numBackupExpected) {
+               System.out.println("received cluster topology, but not at expected state: " +
+                       numLiveExpected + "/" + numLiveActual + "(live expected/actual) :: " +
+                       numBackupExpected + "/" + numBackupActual + "(backup actual/expected)");
+               Thread.sleep(1000);
+            } else {
+               System.out.println("cluster topology test passed: " + topology);
+               return;
+            }
+
+         } catch (Exception e) {
+            //ignore, wait for timeout
+            System.out.println("waiting for JMX server to retrieve cluster topology: " + e.getMessage());
+            Thread.sleep(1000);
+         }
+      }
+      throw new RuntimeException("Error!  timed out waiting for cluster topology");
+   }
+
+   private int getNumLiveBrokers(JsonArray clusterNetworkArray)  {
+      return getNumBrokers(clusterNetworkArray, "live");
+   }
+
+   private int getNumBackupBrokers(JsonArray clusterNetworkArray) {
+      return getNumBrokers(clusterNetworkArray, "backup");
+   }
+
+   private int getNumBrokers(JsonArray clusterNetworkArray, String status) {
+      int numBrokers = 0;
+      for(JsonValue jsonValue : clusterNetworkArray) {
+         if(jsonValue.getValueType() == JsonValue.ValueType.OBJECT && ((JsonObject) jsonValue).containsKey(status)) {
+            numBrokers++;
+         }
+      }
+      return numBrokers;
+   }
+
+   private JsonArray readJson(String topology) {
+      System.out.println("parsing topology: " + topology);
       JsonReader parser = JsonLoader.createReader(new StringReader(topology));
-      return parser.readObject();
+      JsonStructure struct = parser.read();
+      if(struct.getValueType() != JsonValue.ValueType.ARRAY) {
+         throw new RuntimeException("json value was not of an expected ARRAY type, input was: " + topology);
+      }
+      JsonArray jsonArray = (JsonArray) struct;
+      return jsonArray;
    }
 
    //throws a RuntimeException if broker is not live
