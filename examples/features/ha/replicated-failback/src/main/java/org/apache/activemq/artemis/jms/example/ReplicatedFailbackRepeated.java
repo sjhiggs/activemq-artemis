@@ -16,20 +16,23 @@
  */
 package org.apache.activemq.artemis.jms.example;
 
-import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
-import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
-import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
-import org.apache.activemq.artemis.util.ServerUtil;
-
-import javax.json.JsonArray;
+import javax.json.JsonReader;
+import javax.json.JsonValue;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
+import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
+import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
+import org.apache.activemq.artemis.util.ServerUtil;
+import org.apache.activemq.artemis.utils.JsonLoader;
 
 public class ReplicatedFailbackRepeated {
 
@@ -64,17 +67,17 @@ public class ReplicatedFailbackRepeated {
       try {
 
          //this is the master/slave pair being tested
-         server0 = ServerUtil.startServer(baseDir+"/target/server0", "server0", 0, 30000);
-         server1 = ServerUtil.startServer(baseDir+"/target/server1", "server1", 1, 0);
+         server0 = ServerUtil.startServer(baseDir + "/target/server0", "server0", 0, 30000);
+         server1 = ServerUtil.startServer(baseDir + "/target/server1", "server1", 1, 0);
 
          //remainder of servers are only for quorum/cluster testing
-         server2 = ServerUtil.startServer(baseDir+"/target/server2", "server2", 2, 30000);
-         server3 = ServerUtil.startServer(baseDir+"/target/server3", "server3", 3, 0);
-         server4 = ServerUtil.startServer(baseDir+"/target/server4", "server4", 4, 30000);
-         server5 = ServerUtil.startServer(baseDir+"/target/server5", "server5", 5, 0);
-         server6 = ServerUtil.startServer(baseDir+"/target/server6", "server6", 6, 30000);
-         server7 = ServerUtil.startServer(baseDir+"/target/server7", "server7", 7, 0);
-         server8 = ServerUtil.startServer(baseDir+"/target/server8", "server8", 8, 30000);
+         server2 = ServerUtil.startServer(baseDir + "/target/server2", "server2", 2, 30000);
+         server3 = ServerUtil.startServer(baseDir + "/target/server3", "server3", 3, 0);
+         server4 = ServerUtil.startServer(baseDir + "/target/server4", "server4", 4, 30000);
+         server5 = ServerUtil.startServer(baseDir + "/target/server5", "server5", 5, 0);
+         server6 = ServerUtil.startServer(baseDir + "/target/server6", "server6", 6, 30000);
+         server7 = ServerUtil.startServer(baseDir + "/target/server7", "server7", 7, 0);
+         server8 = ServerUtil.startServer(baseDir + "/target/server8", "server8", 8, 30000);
 
          //Test 0: Initial State Checks
          assertBrokerLive(JMX_URL_SERVER0, "server0", JMX_TIMEOUT);
@@ -87,7 +90,7 @@ public class ReplicatedFailbackRepeated {
          assertBrokerBackup(JMX_URL_SERVER7, "server7", JMX_TIMEOUT);
          assertBrokerLive(JMX_URL_SERVER8, "server8", JMX_TIMEOUT);
 
-         for(int i=0; i < new Integer(numTests); i++) {
+         for (int i = 0; i < new Integer(numTests); i++) {
 
             System.out.println("current test iterator:: " + i);
 
@@ -95,6 +98,10 @@ public class ReplicatedFailbackRepeated {
             System.out.println("waiting for 30 seconds");
 
             String topology = listBrokerTopology(JMX_URL_SERVER1, "server1", 10_000);
+            JsonValue object = readJson(topology);
+
+            System.out.println("Object::" + object);
+
             System.out.println("Topology :: " + topology);
             Thread.sleep(30000);
 
@@ -104,12 +111,12 @@ public class ReplicatedFailbackRepeated {
 
             System.out.println("waiting for 5 seconds");
             Thread.sleep(5000);
-            
+
             //TEST 2: start up the master, server0 should be live, server1 should be backup
-            server0 = ServerUtil.startServer(baseDir+"/target/server0", "server0", 0, 120000);
+            server0 = ServerUtil.startServer(baseDir + "/target/server0", "server0", 0, 120000);
             assertBrokerLive(JMX_URL_SERVER0, "server0", JMX_TIMEOUT);
             assertBrokerBackup(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
-            
+
          }
 
       } finally {
@@ -126,38 +133,46 @@ public class ReplicatedFailbackRepeated {
       }
    }
 
+   private JsonValue readJson(String topology) {
+      JsonReader parser = JsonLoader.createReader(new StringReader(topology));
+      return parser.readObject();
+   }
+
    //throws a RuntimeException if broker is not live
    private void assertBrokerLive(String jmxUrl, String serverName, int timeout) throws InterruptedException {
-       assertBrokerState(jmxUrl, serverName, true, timeout);
+      assertBrokerState(jmxUrl, serverName, true, timeout);
    }
 
    //throws a RuntimeException if broker is not a backup
    private void assertBrokerBackup(String jmxUrl, String serverName, int timeout) throws InterruptedException {
-       assertBrokerState(jmxUrl, serverName, false, timeout);
+      assertBrokerState(jmxUrl, serverName, false, timeout);
    }
 
    //throws exception if broker is not in expected state, will keep trying until timeout for JMX & MBean availability
-   private void assertBrokerState(String jmxUrl, String serverName, Boolean expectLive, int timeout) throws InterruptedException {
-       long realTimeout = System.currentTimeMillis() + timeout;
-       while (System.currentTimeMillis() < realTimeout) {
-           try {
-               boolean isLive = isBrokerLiveInternal(jmxUrl, serverName);
-               if (expectLive == false && isLive ) {
-                   throw new RuntimeException("Server " + serverName + " was expected to be backup, but was not");
-               }
-               if (expectLive == true && isLive == false) {
-                   throw new RuntimeException("Server " + serverName + " was expected to be live, but was not");
-               }
+   private void assertBrokerState(String jmxUrl,
+                                  String serverName,
+                                  Boolean expectLive,
+                                  int timeout) throws InterruptedException {
+      long realTimeout = System.currentTimeMillis() + timeout;
+      while (System.currentTimeMillis() < realTimeout) {
+         try {
+            boolean isLive = isBrokerLiveInternal(jmxUrl, serverName);
+            if (expectLive == false && isLive) {
+               throw new RuntimeException("Server " + serverName + " was expected to be backup, but was not");
+            }
+            if (expectLive == true && isLive == false) {
+               throw new RuntimeException("Server " + serverName + " was expected to be live, but was not");
+            }
 
-               //all checks passed, break out of while loop and return
-               return;
-           } catch (Exception e) {
-               //ignore, wait for timeout
-               System.out.println("waiting for JMX server: " + e.getMessage());
-               Thread.sleep(1000);
-           }
-       }
-       throw new RuntimeException("Error!  timed out waiting for backup broker");
+            //all checks passed, break out of while loop and return
+            return;
+         } catch (Exception e) {
+            //ignore, wait for timeout
+            System.out.println("waiting for JMX server: " + e.getMessage());
+            Thread.sleep(1000);
+         }
+      }
+      throw new RuntimeException("Error!  timed out waiting for backup broker");
    }
 
    private Boolean isBrokerLiveInternal(String jmxUrl, String serverName) {
@@ -174,8 +189,8 @@ public class ReplicatedFailbackRepeated {
             return !serverControl.isBackup();
          } catch (Exception e) {
             String msg = e.getMessage();
-            if(msg != null && msg.contains("Broker is not started")) {
-               throw new RuntimeException("JMX connected, but could not query mbean:"  + e.getMessage());
+            if (msg != null && msg.contains("Broker is not started")) {
+               throw new RuntimeException("JMX connected, but could not query mbean:" + e.getMessage());
             } else {
                throw new RuntimeException("was able to connect to JMX server, but encountered unexpected error: " + e.getMessage());
             }
