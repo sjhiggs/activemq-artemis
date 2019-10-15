@@ -21,6 +21,7 @@ import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.util.ServerUtil;
 
+import javax.json.JsonArray;
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
@@ -28,6 +29,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class ReplicatedFailbackRepeated {
 
@@ -63,15 +65,15 @@ public class ReplicatedFailbackRepeated {
 
          //this is the master/slave pair being tested
          server0 = ServerUtil.startServer(baseDir+"/target/server0", "server0", 0, 30000);
-         server1 = ServerUtil.startServer(baseDir+"/target/server1", "server1", 1, 30000);
+         server1 = ServerUtil.startServer(baseDir+"/target/server1", "server1", 1, 0);
 
          //remainder of servers are only for quorum/cluster testing
          server2 = ServerUtil.startServer(baseDir+"/target/server2", "server2", 2, 30000);
-         server3 = ServerUtil.startServer(baseDir+"/target/server3", "server3", 3, 30000);
+         server3 = ServerUtil.startServer(baseDir+"/target/server3", "server3", 3, 0);
          server4 = ServerUtil.startServer(baseDir+"/target/server4", "server4", 4, 30000);
-         server5 = ServerUtil.startServer(baseDir+"/target/server5", "server5", 5, 30000);
+         server5 = ServerUtil.startServer(baseDir+"/target/server5", "server5", 5, 0);
          server6 = ServerUtil.startServer(baseDir+"/target/server6", "server6", 6, 30000);
-         server7 = ServerUtil.startServer(baseDir+"/target/server7", "server7", 7, 30000);
+         server7 = ServerUtil.startServer(baseDir+"/target/server7", "server7", 7, 0);
          server8 = ServerUtil.startServer(baseDir+"/target/server8", "server8", 8, 30000);
 
          //Test 0: Initial State Checks
@@ -91,6 +93,9 @@ public class ReplicatedFailbackRepeated {
 
             //allow server1 to fully replicate with server0 before killing server0 again
             System.out.println("waiting for 30 seconds");
+
+            String topology = listBrokerTopology(JMX_URL_SERVER1, "server1", 10_000);
+            System.out.println("Topology :: " + topology);
             Thread.sleep(30000);
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
@@ -178,5 +183,56 @@ public class ReplicatedFailbackRepeated {
       } catch (Exception e) {
          throw new RuntimeException("unable to connect to JMX server: " + jmxUrl + " :: " + e.getMessage());
       }
+   }
+
+   private String listBrokerTopology(String jmxUrl, String serverName, int timeout) {
+
+      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeout);
+      while (true) {
+         try {
+            ObjectName ON_SERVER = ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(), serverName, true).getActiveMQServerObjectName();
+            System.out.println("querying JMX server: " + jmxUrl);
+            HashMap env = new HashMap();
+            String[] creds = {"guest", "guest"};
+            env.put(JMXConnector.CREDENTIALS, creds);
+            JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(jmxUrl), env);
+            try {
+               MBeanServerConnection mbsc = connector.getMBeanServerConnection();
+               ActiveMQServerControl serverControl = MBeanServerInvocationHandler.newProxyInstance(mbsc, ON_SERVER, ActiveMQServerControl.class, false);
+               return serverControl.listNetworkTopology();
+            } catch (Exception e) {
+               String msg = e.getMessage();
+               if (msg != null && msg.contains("Broker is not started")) {
+                  throw new RuntimeException("JMX connected, but could not query mbean:" + e.getMessage());
+               } else {
+                  throw new RuntimeException("was able to connect to JMX server, but encountered unexpected error: " + e.getMessage());
+               }
+            }
+         } catch (Exception e) {
+            if (System.nanoTime() - deadline < 0) {
+               continue;
+            } else {
+               throw new RuntimeException("unable to connect to JMX server: " + jmxUrl + " :: " + e.getMessage());
+            }
+         }
+      }
+   }
+
+   public interface Condition {
+
+      boolean isSatisified() throws Exception;
+   }
+
+   public static boolean waitFor(final Condition condition,
+                                 final long duration,
+                                 final long sleepMillis) throws Exception {
+
+      final long expiry = System.currentTimeMillis() + duration;
+      boolean conditionSatisified = condition.isSatisified();
+      while (!conditionSatisified && System.currentTimeMillis() < expiry) {
+         TimeUnit.MILLISECONDS.sleep(sleepMillis);
+         conditionSatisified = condition.isSatisified();
+      }
+      return conditionSatisified;
    }
 }
