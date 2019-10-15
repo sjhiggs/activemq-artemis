@@ -90,8 +90,8 @@ public class ReplicatedFailbackRepeated {
             System.out.println("current test iterator:: " + i);
 
             //allow server1 to fully replicate with server0 before killing server0 again
-            System.out.println("waiting for 5 seconds");
-            Thread.sleep(5000);
+            System.out.println("waiting for 30 seconds");
+            Thread.sleep(30000);
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
             ServerUtil.killServer(server0);
