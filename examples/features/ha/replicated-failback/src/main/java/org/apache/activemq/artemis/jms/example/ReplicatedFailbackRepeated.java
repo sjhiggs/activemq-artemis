@@ -57,6 +57,7 @@ public class ReplicatedFailbackRepeated {
    private static final String JMX_URL_SERVER8 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1899/jmxrmi";
 
    private static int JMX_TIMEOUT = 120000;
+   private static int CLUSTER_TIMEOUT = 120000;
 
    public static void main(final String[] args) throws Exception {
       new ReplicatedFailbackRepeated().runTest(args[0], new Integer(args[1]));
@@ -95,23 +96,17 @@ public class ReplicatedFailbackRepeated {
             System.out.println("current test iterator:: " + i);
 
             //allow server1 to fully replicate with server0 before killing server0 again
-            System.out.println("waiting for 5 seconds");
-            Thread.sleep(5000);
-            assertNumClusterBrokers(5, 4, 120000);
+            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT);
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
             ServerUtil.killServer(server0);
             assertBrokerLive(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
 
-            System.out.println("waiting for 5 seconds");
-            Thread.sleep(5000);
-            assertNumClusterBrokers(5, 3, 120000);
+            assertNumClusterBrokers(5, 3, CLUSTER_TIMEOUT);
 
             //TEST 2: start up the master, server0 should be live, server1 should be backup
             server0 = ServerUtil.startServer(baseDir + "/target/server0", "server0", 0, 120000);
-            System.out.println("waiting for 5 seconds");
-            Thread.sleep(5000);
-            assertNumClusterBrokers(5, 4,120000);
+            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT);
             assertBrokerLive(JMX_URL_SERVER0, "server0", JMX_TIMEOUT);
             assertBrokerBackup(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
 
@@ -142,7 +137,7 @@ public class ReplicatedFailbackRepeated {
             if(numLiveActual != numLiveExpected || numBackupActual != numBackupExpected) {
                System.out.println("received cluster topology, but not at expected state: " +
                        numLiveExpected + "/" + numLiveActual + "(live expected/actual) :: " +
-                       numBackupExpected + "/" + numBackupActual + "(backup actual/expected)");
+                       numBackupExpected + "/" + numBackupActual + "(backup expected/actual)");
                Thread.sleep(1000);
             } else {
                System.out.println("cluster topology test passed: " + topology);
@@ -249,54 +244,30 @@ public class ReplicatedFailbackRepeated {
       }
    }
 
-   private String listBrokerTopology(String jmxUrl, String serverName, int timeout) {
+   private String listBrokerTopology(String jmxUrl, String serverName, int timeout) throws InterruptedException {
 
-      long deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeout);
-      while (true) {
+      try {
+         ObjectName ON_SERVER = ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(), serverName, true).getActiveMQServerObjectName();
+         System.out.println("querying JMX server: " + jmxUrl);
+         HashMap env = new HashMap();
+         String[] creds = {"guest", "guest"};
+         env.put(JMXConnector.CREDENTIALS, creds);
+         JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(jmxUrl), env);
          try {
-            ObjectName ON_SERVER = ObjectNameBuilder.create(ActiveMQDefaultConfiguration.getDefaultJmxDomain(), serverName, true).getActiveMQServerObjectName();
-            System.out.println("querying JMX server: " + jmxUrl);
-            HashMap env = new HashMap();
-            String[] creds = {"guest", "guest"};
-            env.put(JMXConnector.CREDENTIALS, creds);
-            JMXConnector connector = JMXConnectorFactory.connect(new JMXServiceURL(jmxUrl), env);
-            try {
-               MBeanServerConnection mbsc = connector.getMBeanServerConnection();
-               ActiveMQServerControl serverControl = MBeanServerInvocationHandler.newProxyInstance(mbsc, ON_SERVER, ActiveMQServerControl.class, false);
-               return serverControl.listNetworkTopology();
-            } catch (Exception e) {
-               String msg = e.getMessage();
-               if (msg != null && msg.contains("Broker is not started")) {
-                  throw new RuntimeException("JMX connected, but could not query mbean:" + e.getMessage());
-               } else {
-                  throw new RuntimeException("was able to connect to JMX server, but encountered unexpected error: " + e.getMessage());
-               }
-            }
+            MBeanServerConnection mbsc = connector.getMBeanServerConnection();
+            ActiveMQServerControl serverControl = MBeanServerInvocationHandler.newProxyInstance(mbsc, ON_SERVER, ActiveMQServerControl.class, false);
+            return serverControl.listNetworkTopology();
          } catch (Exception e) {
-            if (System.nanoTime() - deadline < 0) {
-               continue;
+            String msg = e.getMessage();
+            if (msg != null && msg.contains("Broker is not started")) {
+               throw new RuntimeException("JMX connected, but could not query mbean:" + e.getMessage());
             } else {
-               throw new RuntimeException("unable to connect to JMX server: " + jmxUrl + " :: " + e.getMessage());
+               throw new RuntimeException("was able to connect to JMX server, but encountered unexpected error: " + e.getMessage());
             }
          }
+      } catch (Exception e) {
+            throw new RuntimeException("unable to connect to JMX server: " + jmxUrl + " :: " + e.getMessage());
       }
    }
 
-   public interface Condition {
-
-      boolean isSatisified() throws Exception;
-   }
-
-   public static boolean waitFor(final Condition condition,
-                                 final long duration,
-                                 final long sleepMillis) throws Exception {
-
-      final long expiry = System.currentTimeMillis() + duration;
-      boolean conditionSatisified = condition.isSatisified();
-      while (!conditionSatisified && System.currentTimeMillis() < expiry) {
-         TimeUnit.MILLISECONDS.sleep(sleepMillis);
-         conditionSatisified = condition.isSatisified();
-      }
-      return conditionSatisified;
-   }
 }
