@@ -93,20 +93,24 @@ public class ReplicatedFailbackRepeated {
 
          for (int i = 0; i < new Integer(numTests); i++) {
 
-            System.out.println("current test iterator:: " + i);
+            System.out.println("------------------------------\ncurrent test iterator:: " + i + "\n------------------------------");
 
             //allow server1 to fully replicate with server0 before killing server0 again
-            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT);
+            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT, JMX_URL_SERVER1, "server1");
+            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT, JMX_URL_SERVER0, "server0");
+
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
             ServerUtil.killServer(server0);
             assertBrokerLive(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
+            assertNumClusterBrokers(5, 3, CLUSTER_TIMEOUT, JMX_URL_SERVER1, "server1");
 
-            assertNumClusterBrokers(5, 3, CLUSTER_TIMEOUT);
 
             //TEST 2: start up the master, server0 should be live, server1 should be backup
             server0 = ServerUtil.startServer(baseDir + "/target/server0", "server0", 0, 120000);
-            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT);
+            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT, JMX_URL_SERVER1, "server1");
+            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT, JMX_URL_SERVER0, "server0");
+
             assertBrokerLive(JMX_URL_SERVER0, "server0", JMX_TIMEOUT);
             assertBrokerBackup(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
 
@@ -126,11 +130,11 @@ public class ReplicatedFailbackRepeated {
       }
    }
 
-   private void assertNumClusterBrokers(int numLiveExpected, int numBackupExpected, int timeout) throws InterruptedException {
+   private void assertNumClusterBrokers(int numLiveExpected, int numBackupExpected, int timeout, String jmxUrl, String serverName) throws InterruptedException {
       long realTimeout = System.currentTimeMillis() + timeout;
       while (System.currentTimeMillis() < realTimeout) {
          try {
-            String topology = listBrokerTopology(JMX_URL_SERVER1, "server1", 10_000);
+            String topology = listBrokerTopology(jmxUrl, serverName, 10_000);
             JsonArray clusterNetworkArray = readJson(topology);
             int numLiveActual = getNumLiveBrokers(clusterNetworkArray);
             int numBackupActual = getNumBackupBrokers(clusterNetworkArray);
