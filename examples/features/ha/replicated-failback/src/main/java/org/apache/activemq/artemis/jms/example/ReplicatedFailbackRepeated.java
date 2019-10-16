@@ -25,14 +25,12 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 import java.io.StringReader;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.activemq.artemis.api.config.ActiveMQDefaultConfiguration;
 import org.apache.activemq.artemis.api.core.management.ActiveMQServerControl;
 import org.apache.activemq.artemis.api.core.management.ObjectNameBuilder;
 import org.apache.activemq.artemis.util.ServerUtil;
 import org.apache.activemq.artemis.utils.JsonLoader;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class ReplicatedFailbackRepeated {
 
@@ -56,8 +54,8 @@ public class ReplicatedFailbackRepeated {
    private static final String JMX_URL_SERVER7 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1799/jmxrmi";
    private static final String JMX_URL_SERVER8 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1899/jmxrmi";
 
-   private static int JMX_TIMEOUT = 120000;
-   private static int CLUSTER_TIMEOUT = 120000;
+   private static int LIVE_STATUS_TIMEOUT = 120000;
+   private static int CLUSTER_STATUS_TIMEOUT = 120000;
 
    public static void main(final String[] args) throws Exception {
       new ReplicatedFailbackRepeated().runTest(args[0], new Integer(args[1]));
@@ -81,38 +79,38 @@ public class ReplicatedFailbackRepeated {
          server8 = ServerUtil.startServer(baseDir + "/target/server8", "server8", 8, 30000);
 
          //Test 0: Initial State Checks
-         assertBrokerLive(JMX_URL_SERVER0, "server0", JMX_TIMEOUT);
-         assertBrokerBackup(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
-         assertBrokerLive(JMX_URL_SERVER2, "server2", JMX_TIMEOUT);
-         assertBrokerBackup(JMX_URL_SERVER3, "server3", JMX_TIMEOUT);
-         assertBrokerLive(JMX_URL_SERVER4, "server4", JMX_TIMEOUT);
-         assertBrokerBackup(JMX_URL_SERVER5, "server5", JMX_TIMEOUT);
-         assertBrokerLive(JMX_URL_SERVER6, "server6", JMX_TIMEOUT);
-         assertBrokerBackup(JMX_URL_SERVER7, "server7", JMX_TIMEOUT);
-         assertBrokerLive(JMX_URL_SERVER8, "server8", JMX_TIMEOUT);
+         assertBrokerLive(JMX_URL_SERVER0, "server0", LIVE_STATUS_TIMEOUT);
+         assertBrokerBackup(JMX_URL_SERVER1, "server1", LIVE_STATUS_TIMEOUT);
+         assertBrokerLive(JMX_URL_SERVER2, "server2", LIVE_STATUS_TIMEOUT);
+         assertBrokerBackup(JMX_URL_SERVER3, "server3", LIVE_STATUS_TIMEOUT);
+         assertBrokerLive(JMX_URL_SERVER4, "server4", LIVE_STATUS_TIMEOUT);
+         assertBrokerBackup(JMX_URL_SERVER5, "server5", LIVE_STATUS_TIMEOUT);
+         assertBrokerLive(JMX_URL_SERVER6, "server6", LIVE_STATUS_TIMEOUT);
+         assertBrokerBackup(JMX_URL_SERVER7, "server7", LIVE_STATUS_TIMEOUT);
+         assertBrokerLive(JMX_URL_SERVER8, "server8", LIVE_STATUS_TIMEOUT);
 
          for (int i = 0; i < new Integer(numTests); i++) {
 
             System.out.println("------------------------------\ncurrent test iterator:: " + i + "\n------------------------------");
 
             //allow server1 to fully replicate with server0 before killing server0 again
-            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT, JMX_URL_SERVER1, "server1");
-            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT, JMX_URL_SERVER0, "server0");
+            assertNumClusterBrokers(5, 4, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
+            assertNumClusterBrokers(5, 4, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER0, "server0");
 
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
             ServerUtil.killServer(server0);
-            assertBrokerLive(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
-            assertNumClusterBrokers(5, 3, CLUSTER_TIMEOUT, JMX_URL_SERVER1, "server1");
+            assertBrokerLive(JMX_URL_SERVER1, "server1", LIVE_STATUS_TIMEOUT);
+            assertNumClusterBrokers(5, 3, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
 
 
             //TEST 2: start up the master, server0 should be live, server1 should be backup
             server0 = ServerUtil.startServer(baseDir + "/target/server0", "server0", 0, 120000);
-            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT, JMX_URL_SERVER1, "server1");
-            assertNumClusterBrokers(5, 4, CLUSTER_TIMEOUT, JMX_URL_SERVER0, "server0");
+            assertNumClusterBrokers(5, 4, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
+            assertNumClusterBrokers(5, 4, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER0, "server0");
 
-            assertBrokerLive(JMX_URL_SERVER0, "server0", JMX_TIMEOUT);
-            assertBrokerBackup(JMX_URL_SERVER1, "server1", JMX_TIMEOUT);
+            assertBrokerLive(JMX_URL_SERVER0, "server0", LIVE_STATUS_TIMEOUT);
+            assertBrokerBackup(JMX_URL_SERVER1, "server1", LIVE_STATUS_TIMEOUT);
 
          }
 
@@ -242,6 +240,8 @@ public class ReplicatedFailbackRepeated {
             } else {
                throw new RuntimeException("was able to connect to JMX server, but encountered unexpected error: " + e.getMessage());
             }
+         } finally {
+            connector.close();
          }
       } catch (Exception e) {
          throw new RuntimeException("unable to connect to JMX server: " + jmxUrl + " :: " + e.getMessage());
@@ -268,6 +268,8 @@ public class ReplicatedFailbackRepeated {
             } else {
                throw new RuntimeException("was able to connect to JMX server, but encountered unexpected error: " + e.getMessage());
             }
+         } finally {
+            connector.close();
          }
       } catch (Exception e) {
             throw new RuntimeException("unable to connect to JMX server: " + jmxUrl + " :: " + e.getMessage());
