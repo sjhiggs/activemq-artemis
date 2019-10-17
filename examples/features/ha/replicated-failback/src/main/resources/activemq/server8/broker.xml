@@ -31,7 +31,7 @@ under the License.
       <jmx-management-enabled>true</jmx-management-enabled>
 
       <connectors>
-         <connector name="netty-connector">tcp://localhost:61624?sslEnabled=true&amp;trustStorePath=activemq.example.truststore&amp;trustStorePassword=activemqexample</connector>
+         <connector name="netty-connector">tcp://localhost:61624?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
       </connectors>
 
       <acceptors>
