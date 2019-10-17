@@ -41,11 +41,11 @@ under the License.
       </ha-policy>
 
       <connectors>
-         <connector name="netty-connector">tcp://localhost:61616</connector>
+         <connector name="netty-connector">tcp://localhost:61616?sslEnabled=true&amp;trustStorePath=activemq.example.truststore&amp;trustStorePassword=activemqexample</connector>
       </connectors>
 
       <acceptors>
-         <acceptor name="netty-acceptor">tcp://localhost:61616</acceptor>
+         <acceptor name="netty-acceptor">tcp://localhost:61616?sslEnabled=true;keyStorePath=activemq.example.keystore;keyStorePassword=activemqexample</acceptor>
       </acceptors>
 
       <broadcast-groups>
