@@ -40,9 +40,6 @@ public class ReplicatedFailbackRepeated {
    private Process server3;
    private Process server4;
    private Process server5;
-   private Process server6;
-   private Process server7;
-   private Process server8;
 
    private static final String JMX_URL_SERVER0 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1099/jmxrmi";
    private static final String JMX_URL_SERVER1 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1199/jmxrmi";
@@ -50,9 +47,6 @@ public class ReplicatedFailbackRepeated {
    private static final String JMX_URL_SERVER3 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1399/jmxrmi";
    private static final String JMX_URL_SERVER4 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1499/jmxrmi";
    private static final String JMX_URL_SERVER5 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1599/jmxrmi";
-   private static final String JMX_URL_SERVER6 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1699/jmxrmi";
-   private static final String JMX_URL_SERVER7 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1799/jmxrmi";
-   private static final String JMX_URL_SERVER8 = "service:jmx:rmi:///jndi/rmi://0.0.0.0:1899/jmxrmi";
 
    private static int LIVE_STATUS_TIMEOUT = 120000;
    private static int CLUSTER_STATUS_TIMEOUT = 120000;
@@ -74,9 +68,6 @@ public class ReplicatedFailbackRepeated {
          server3 = ServerUtil.startServer(baseDir + "/target/server3", "server3", 3, 0);
          server4 = ServerUtil.startServer(baseDir + "/target/server4", "server4", 4, 30000);
          server5 = ServerUtil.startServer(baseDir + "/target/server5", "server5", 5, 0);
-         server6 = ServerUtil.startServer(baseDir + "/target/server6", "server6", 6, 30000);
-         server7 = ServerUtil.startServer(baseDir + "/target/server7", "server7", 7, 0);
-         server8 = ServerUtil.startServer(baseDir + "/target/server8", "server8", 8, 30000);
 
          //Test 0: Initial State Checks
          assertBrokerLive(JMX_URL_SERVER0, "server0", LIVE_STATUS_TIMEOUT);
@@ -85,29 +76,26 @@ public class ReplicatedFailbackRepeated {
          assertBrokerBackup(JMX_URL_SERVER3, "server3", LIVE_STATUS_TIMEOUT);
          assertBrokerLive(JMX_URL_SERVER4, "server4", LIVE_STATUS_TIMEOUT);
          assertBrokerBackup(JMX_URL_SERVER5, "server5", LIVE_STATUS_TIMEOUT);
-         assertBrokerLive(JMX_URL_SERVER6, "server6", LIVE_STATUS_TIMEOUT);
-         assertBrokerBackup(JMX_URL_SERVER7, "server7", LIVE_STATUS_TIMEOUT);
-         assertBrokerLive(JMX_URL_SERVER8, "server8", LIVE_STATUS_TIMEOUT);
 
          for (int i = 0; i < new Integer(numTests); i++) {
 
             System.out.println("------------------------------\ncurrent test iterator:: " + i + "\n------------------------------");
 
             //allow server1 to fully replicate with server0 before killing server0 again
-            assertNumClusterBrokers(5, 4, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
-            assertNumClusterBrokers(5, 4, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER0, "server0");
+            assertNumClusterBrokers(3, 3, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
+            assertNumClusterBrokers(3, 3, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER0, "server0");
 
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
             ServerUtil.killServer(server0);
             assertBrokerLive(JMX_URL_SERVER1, "server1", LIVE_STATUS_TIMEOUT);
-            assertNumClusterBrokers(5, 3, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
+            assertNumClusterBrokers(3, 2, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
 
 
             //TEST 2: start up the master, server0 should be live, server1 should be backup
             server0 = ServerUtil.startServer(baseDir + "/target/server0", "server0", 0, 120000);
-            assertNumClusterBrokers(5, 4, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
-            assertNumClusterBrokers(5, 4, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER0, "server0");
+            assertNumClusterBrokers(3, 3, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER1, "server1");
+            assertNumClusterBrokers(3, 3, CLUSTER_STATUS_TIMEOUT, JMX_URL_SERVER0, "server0");
 
             assertBrokerLive(JMX_URL_SERVER0, "server0", LIVE_STATUS_TIMEOUT);
             assertBrokerBackup(JMX_URL_SERVER1, "server1", LIVE_STATUS_TIMEOUT);
@@ -122,9 +110,6 @@ public class ReplicatedFailbackRepeated {
          ServerUtil.killServer(server3);
          ServerUtil.killServer(server4);
          ServerUtil.killServer(server5);
-         ServerUtil.killServer(server6);
-         ServerUtil.killServer(server7);
-         ServerUtil.killServer(server8);
       }
    }
 

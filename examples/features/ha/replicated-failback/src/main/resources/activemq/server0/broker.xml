@@ -41,39 +41,28 @@ under the License.
       </ha-policy>
 
       <connectors>
-         <connector name="netty-connector">tcp://localhost:62616?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-connector-server0-live">tcp://localhost:61616</connector>
+         <connector name="netty-connector-server1-backup">tcp://localhost:61617</connector>
+         <connector name="netty-connector-server2-live">tcp://localhost:61618</connector>
+         <connector name="netty-connector-server3-backup">tcp://localhost:61619</connector>
+         <connector name="netty-connector-server4-live">tcp://localhost:61620</connector>
+         <connector name="netty-connector-server5-backup">tcp://localhost:61621</connector>
       </connectors>
 
       <acceptors>
-         <acceptor name="netty-acceptor-ssl">tcp://localhost:62616?sslEnabled=true;keyStorePath=activemq.example.keystore;keyStorePassword=activemqexample</acceptor>
          <acceptor name="netty-acceptor">tcp://localhost:61616</acceptor> <!--plain text for our test client pinger -->
       </acceptors>
 
-      <broadcast-groups>
-         <broadcast-group name="my-broadcast-group">
-            <broadcast-period>1000</broadcast-period>
-            <jgroups-file>test-jgroups-file_ping.xml</jgroups-file>
-            <jgroups-channel>active_broadcast_channel</jgroups-channel>
-            <connector-ref>netty-connector</connector-ref>
-         </broadcast-group>
-      </broadcast-groups>
-
-      <discovery-groups>
-         <discovery-group name="my-discovery-group">
-            <jgroups-file>test-jgroups-file_ping.xml</jgroups-file>
-            <jgroups-channel>active_broadcast_channel</jgroups-channel>
-            <refresh-timeout>1000</refresh-timeout>
-         </discovery-group>
-      </discovery-groups>
-
       <cluster-connections>
          <cluster-connection name="my-cluster">
-            <connector-ref>netty-connector</connector-ref>
-            <retry-interval>500</retry-interval>
-            <use-duplicate-detection>true</use-duplicate-detection>
-            <message-load-balancing>ON_DEMAND</message-load-balancing>
-            <max-hops>1</max-hops>
-            <discovery-group-ref discovery-group-name="my-discovery-group"/>
+            <connector-ref>netty-connector-server0-live</connector-ref>
+            <static-connectors>
+               <connector-ref>netty-connector-server1-backup</connector-ref>
+               <connector-ref>netty-connector-server2-live</connector-ref>
+               <connector-ref>netty-connector-server3-backup</connector-ref>
+               <connector-ref>netty-connector-server4-live</connector-ref>
+               <connector-ref>netty-connector-server5-backup</connector-ref>
+            </static-connectors>
          </cluster-connection>
       </cluster-connections>
 
