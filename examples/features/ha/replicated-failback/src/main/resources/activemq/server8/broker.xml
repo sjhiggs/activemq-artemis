@@ -31,11 +31,12 @@ under the License.
       <jmx-management-enabled>true</jmx-management-enabled>
 
       <connectors>
-         <connector name="netty-connector">tcp://localhost:61624?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-connector">tcp://localhost:62624?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
       </connectors>
 
       <acceptors>
-         <acceptor name="netty-acceptor">tcp://localhost:61624?sslEnabled=true;keyStorePath=activemq.example.keystore;keyStorePassword=activemqexample</acceptor>
+         <acceptor name="netty-acceptor-ssl">tcp://localhost:62624?sslEnabled=true;keyStorePath=activemq.example.keystore;keyStorePassword=activemqexample</acceptor>
+         <acceptor name="netty-acceptor">tcp://localhost:61624</acceptor> <!--plain text for our test client pinger -->
       </acceptors>
 
       <ha-policy>
