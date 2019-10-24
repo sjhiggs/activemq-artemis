@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!--
-Licensed to the Apache Software Foundation (ASF) under one
+     Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
 regarding copyright ownership.  The ASF licenses this file
@@ -16,80 +16,181 @@ software distributed under the License is distributed on an
 KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
--->
-<configuration xmlns="urn:activemq" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:activemq /schema/artemis-configuration.xsd">
+--><configuration xmlns="urn:activemq" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:activemq /schema/artemis-server.xsd">
+
+   
+
    <core xmlns="urn:activemq:core">
 
-      <name>server5</name>
-      <journal-type>ASYNCIO</journal-type>
-      <bindings-directory>./data/bindings</bindings-directory>
-      <journal-directory>./data/journal</journal-directory>
-      <large-messages-directory>./data/largemessages</large-messages-directory>
-      <paging-directory>./data/paging</paging-directory>
-      <cluster-user>myuser</cluster-user>
-      <cluster-password>foobar</cluster-password>
-      <jmx-management-enabled>true</jmx-management-enabled>
+      <name>miatmq03b-pvl</name>
 
+      <journal-type>ASYNCIO</journal-type>
+
+      <bindings-directory>./data/bindings</bindings-directory>
+
+      <journal-directory>./data/journal</journal-directory>
+
+      <large-messages-directory>./data/largemessages</large-messages-directory>
+
+      <paging-directory>./data/paging</paging-directory>
+
+      <cluster-user>amqprod1cluster</cluster-user>
+
+      <cluster-password>REDACTED_CLUSTER_PASSWORD</cluster-password>
+	  
       <ha-policy>
          <replication>
             <slave>
                <allow-failback>true</allow-failback>
-               <group-name>pair3</group-name>
+               <group-name>prod-pair-3</group-name>
+<!--           <quorum-size>3</quorum-size> -->
             </slave>
          </replication>
       </ha-policy>
 
+      <!-- Connectors -->
+
       <connectors>
-         <connector name="netty-connector-server0-live">tcp://localhost:61616</connector>
-         <connector name="netty-connector-server1-backup">tcp://localhost:61617</connector>
-         <connector name="netty-connector-server2-live">tcp://localhost:61618</connector>
-         <connector name="netty-connector-server3-backup">tcp://localhost:61619</connector>
-         <connector name="netty-connector-server4-live">tcp://localhost:61620</connector>
-         <connector name="netty-connector-server5-backup">tcp://localhost:61621</connector>
+         <connector name="netty-ssl-connector-1a">tcp://localhost:61616?sslEnabled=true</connector>
+         <connector name="netty-ssl-connector-1b">tcp://localhost:61616?sslEnabled=true</connector>
+         <connector name="netty-ssl-connector-2a">tcp://localhost:61616?sslEnabled=true</connector>
+         <connector name="netty-ssl-connector-2b">tcp://localhost:61616?sslEnabled=true</connector>
+         <connector name="netty-ssl-connector-3a">tcp://localhost:61616?sslEnabled=true</connector>
+         <connector name="netty-ssl-connector-3b">tcp://localhost:61616?sslEnabled=true</connector>
+         <connector name="netty-ssl-connector-4a">tcp://localhost:61616?sslEnabled=true</connector>
+         <connector name="netty-ssl-connector-4b">tcp://localhost:61616?sslEnabled=true</connector>
+         <connector name="netty-ssl-connector-1w">tcp://localhost:61616?sslEnabled=true</connector>
       </connectors>
 
+      <!-- Acceptors -->
       <acceptors>
-         <acceptor name="netty-acceptor">tcp://localhost:61621</acceptor> <!--plain text for our test client pinger -->
+         <acceptor name="netty-ssl-acceptor">tcp://localhost:61616?sslEnabled=true;keyStorePath=/usr/local/java/jdk1.8.0_102/jre/lib/security/jks/keystore/host-keystore.jks;keyStorePassword=REDACTED_KEYSTORE_PASSWORD;tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
       </acceptors>
 
+      <!-- Clustering configuration -->
+
+      <!-- Broadcast and discovery removed for static cluster testing
+      <broadcast-groups>
+         <broadcast-group name="my-broadcast-group">
+            <broadcast-period>5000</broadcast-period>
+            <jgroups-file>mping.xml</jgroups-file>
+            <jgroups-channel>active_broadcast_channel</jgroups-channel>
+            <connector-ref>netty-ssl-connector</connector-ref>
+         </broadcast-group>
+      </broadcast-groups>
+
+      <discovery-groups>
+         <discovery-group name="my-discovery-group">
+            <jgroups-file>mping.xml</jgroups-file>
+            <jgroups-channel>active_broadcast_channel</jgroups-channel>
+            <refresh-timeout>10000</refresh-timeout>
+         </discovery-group>
+      </discovery-groups>
+      Broadcast and discovery removed for static cluster testing -->
+
+      <!-- Old jGroups cluster connections
       <cluster-connections>
-         <cluster-connection name="my-cluster">
-            <connector-ref>netty-connector-server4-live</connector-ref>
+         <cluster-connection name="prod1-cluster">
+            <connector-ref>netty-ssl-connector</connector-ref>
+            <retry-interval>500</retry-interval>
+            <use-duplicate-detection>true</use-duplicate-detection>
+            <message-load-balancing>ON_DEMAND</message-load-balancing>
+            <max-hops>1</max-hops>
+            <discovery-group-ref discovery-group-name="my-discovery-group"/>
+         </cluster-connection>
+      </cluster-connections>
+      Old jGroups cluster connections -->
+
+      <!-- Static cluster test connections -->
+
+      <cluster-connections>
+         <cluster-connection name="prod1-cluster">
+            <connector-ref>netty-ssl-connector-3b</connector-ref>
             <static-connectors>
-               <connector-ref>netty-connector-server0-live</connector-ref>
-               <connector-ref>netty-connector-server1-backup</connector-ref>
-               <connector-ref>netty-connector-server2-live</connector-ref>
-               <connector-ref>netty-connector-server3-backup</connector-ref>
-               <connector-ref>netty-connector-server4-live</connector-ref>
+               <connector-ref>netty-ssl-connector-1a</connector-ref>
+               <connector-ref>netty-ssl-connector-1b</connector-ref>
+               <connector-ref>netty-ssl-connector-2a</connector-ref>
+               <connector-ref>netty-ssl-connector-2b</connector-ref>
+               <connector-ref>netty-ssl-connector-3a</connector-ref>
+<!--               <connector-ref>netty-ssl-connector-3b</connector-ref> -->
+               <connector-ref>netty-ssl-connector-4a</connector-ref>
+               <connector-ref>netty-ssl-connector-4b</connector-ref>
+               <connector-ref>netty-ssl-connector-1w</connector-ref>
             </static-connectors>
          </cluster-connection>
       </cluster-connections>
 
       <!-- Other config -->
 
+      <!-- once the disk hits this limit the system will block, or close the connection in certain protocols
+                           that won't support flow control. -->
       <max-disk-usage>70</max-disk-usage>
+
+
+      <!-- the system will enter into page mode once you hit this limit.
+                                 This is an estimate in bytes of how much the messages are using in memory -->
       <global-max-size>419430400</global-max-size>
+
       <message-expiry-scan-period>50000</message-expiry-scan-period>
       <message-expiry-thread-priority>8</message-expiry-thread-priority>
       <thread-pool-max-size>1000</thread-pool-max-size>
       <security-invalidation-interval>310000</security-invalidation-interval>
       <journal-pool-files>100</journal-pool-files>
+
+       <!-- should the broker detect dead locks and other issues -->
       <critical-analyzer>true</critical-analyzer>
       <critical-analyzer-timeout>120000</critical-analyzer-timeout>
       <critical-analyzer-check-period>60000</critical-analyzer-check-period>
       <critical-analyzer-policy>HALT</critical-analyzer-policy>
 
+
       <security-settings>
-         <!--security for example queue-->
-         <security-setting match="exampleQueue">
-            <permission roles="guest" type="createDurableQueue"/>
-            <permission roles="guest" type="deleteDurableQueue"/>
-            <permission roles="guest" type="createNonDurableQueue"/>
-            <permission roles="guest" type="deleteNonDurableQueue"/>
-            <permission roles="guest" type="consume"/>
-            <permission roles="guest" type="send"/>
+         <security-setting match="#">
+            <permission type="createNonDurableQueue" roles="app-amq-prod-system-admins"/>
+            <permission type="deleteNonDurableQueue" roles="app-amq-prod-system-admins"/>
+            <permission type="createDurableQueue" roles="app-amq-prod-system-admins"/>
+            <permission type="deleteDurableQueue" roles="app-amq-prod-system-admins"/>
+            <permission type="createAddress" roles="app-amq-prod-system-admins"/>
+            <permission type="deleteAddress" roles="app-amq-prod-system-admins"/>
+            <permission type="consume" roles="app-amq-prod-system-admins,app-amq-prod-system-operators"/>
+            <permission type="browse" roles="app-amq-prod-system-admins,app-amq-prod-system-operators"/>
+            <permission type="send" roles="app-amq-prod-system-admins,app-amq-prod-system-operators"/>
+            <permission type="manage" roles="app-amq-prod-system-admins,app-amq-prod-system-operators"/>
          </security-setting>
+
+         <security-setting match="ServerFilter">
+            <permission type="createDurableQueue" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
+            <permission type="consume" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
+            <permission type="browse" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
+            <permission type="send" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
+            <permission type="manage" roles="app-amq-prod-system-admins"/>
+         </security-setting>
+
+         <security-setting match="exampleQueue">
+            <permission type="createDurableQueue" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
+            <permission type="consume" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
+            <permission type="browse" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
+            <permission type="send" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
+            <permission type="manage" roles="app-amq-prod-system-admins"/>
+         </security-setting>
+
+         <!--security for example queue-->
       </security-settings>
+
+      <address-settings>
+         <address-setting match="#">
+           <max-size-bytes>104857600</max-size-bytes>
+           <page-size-bytes>10485760</page-size-bytes>
+           <address-full-policy>PAGE</address-full-policy>
+           <expiry-address>expiryQueue</expiry-address>
+           <redelivery-delay>5000</redelivery-delay>
+           <redelivery-delay-multiplier>2</redelivery-delay-multiplier>
+           <max-redelivery-delay>50000</max-redelivery-delay>
+           <dead-letter-address>deadLetterQueue</dead-letter-address>
+           <max-delivery-attempts>5</max-delivery-attempts>
+	   <redistribution-delay>300000</redistribution-delay>
+         </address-setting>
+      </address-settings>
 
       <addresses>
          <address name="exampleQueue">
@@ -97,6 +198,32 @@ under the License.
                <queue name="exampleQueue"/>
             </anycast>
          </address>
+
+	 <address name="ServerFilter">
+            <anycast>
+               <queue name="Queue1">
+		   <filter string="color='red'"/>
+	       </queue>
+               <queue name="Queue2">
+                   <filter string="color='yellow'"/>
+               </queue>
+               <queue name="Queue3">
+                   <filter string="color='Green'"/>
+               </queue>
+            </anycast>
+         </address>
+         <address name="expiryQueue">
+           <anycast>
+             <queue name="expiryQueue"/>
+           </anycast>
+         </address>
+         <address name="deadLetterQueue">
+           <anycast>
+             <queue name="deadLetterQueue"/>
+           </anycast>
+         </address>
+
       </addresses>
    </core>
 </configuration>
+
