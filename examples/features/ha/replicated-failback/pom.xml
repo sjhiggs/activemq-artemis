@@ -147,6 +147,48 @@ under the License.
                   </configuration>
                </execution>
                <execution>
+                  <id>create6</id>
+                  <goals>
+                     <goal>create</goal>
+                  </goals>
+                  <configuration>
+                     <libList>
+                        <arg>org.jgroups:jgroups:3.6.0.Final</arg>
+                     </libList>
+                     <javaOptions>-Djava.net.preferIPv4Stack=true</javaOptions>
+                     <instance>${basedir}/target/server6</instance>
+                     <configuration>${basedir}/target/classes/activemq/server6</configuration>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>create7</id>
+                  <goals>
+                     <goal>create</goal>
+                  </goals>
+                  <configuration>
+                     <libList>
+                        <arg>org.jgroups:jgroups:3.6.0.Final</arg>
+                     </libList>
+                     <javaOptions>-Djava.net.preferIPv4Stack=true</javaOptions>
+                     <instance>${basedir}/target/server7</instance>
+                     <configuration>${basedir}/target/classes/activemq/server7</configuration>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>create8</id>
+                  <goals>
+                     <goal>create</goal>
+                  </goals>
+                  <configuration>
+                     <libList>
+                        <arg>org.jgroups:jgroups:3.6.0.Final</arg>
+                     </libList>
+                     <javaOptions>-Djava.net.preferIPv4Stack=true</javaOptions>
+                     <instance>${basedir}/target/server8</instance>
+                     <configuration>${basedir}/target/classes/activemq/server8</configuration>
+                  </configuration>
+               </execution>
+               <execution>
                   <id>runClient</id>
                   <goals>
                      <goal>runClient</goal>
@@ -155,7 +197,7 @@ under the License.
                      <clientClass>org.apache.activemq.artemis.jms.example.ReplicatedFailbackRepeated</clientClass>
                      <args>
                         <param>${basedir}</param>
-                        <param>2</param>
+                        <param>500</param>
                      </args>
                   </configuration>
                </execution>

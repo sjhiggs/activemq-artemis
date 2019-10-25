@@ -22,7 +22,7 @@ under the License.
 
    <core xmlns="urn:activemq:core">
 
-      <name>tratmq04a-pvl</name>
+      <name>server6</name>
 
       <journal-type>ASYNCIO</journal-type>
 
@@ -52,20 +52,21 @@ under the License.
       <!-- Connectors -->
 
        <connectors>
-           <connector name="netty-ssl-connector-1a">tcp://localhost:61616?sslEnabled=true</connector>
-           <connector name="netty-ssl-connector-1b">tcp://localhost:61616?sslEnabled=true</connector>
-           <connector name="netty-ssl-connector-2a">tcp://localhost:61616?sslEnabled=true</connector>
-           <connector name="netty-ssl-connector-2b">tcp://localhost:61616?sslEnabled=true</connector>
-           <connector name="netty-ssl-connector-3a">tcp://localhost:61616?sslEnabled=true</connector>
-           <connector name="netty-ssl-connector-3b">tcp://localhost:61616?sslEnabled=true</connector>
-           <connector name="netty-ssl-connector-4a">tcp://localhost:61616?sslEnabled=true</connector>
-           <connector name="netty-ssl-connector-4b">tcp://localhost:61616?sslEnabled=true</connector>
-           <connector name="netty-ssl-connector-1w">tcp://localhost:61616?sslEnabled=true</connector>
+           <connector name="netty-ssl-connector-1a">tcp://localhost:61616?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+           <connector name="netty-ssl-connector-1b">tcp://localhost:61617?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+           <connector name="netty-ssl-connector-2a">tcp://localhost:61618?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+           <connector name="netty-ssl-connector-2b">tcp://localhost:61619?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+           <connector name="netty-ssl-connector-3a">tcp://localhost:61620?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexamplee</connector>
+           <connector name="netty-ssl-connector-3b">tcp://localhost:61621?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+           <connector name="netty-ssl-connector-4a">tcp://localhost:61622?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+           <connector name="netty-ssl-connector-4b">tcp://localhost:61623?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+           <connector name="netty-ssl-connector-1w">tcp://localhost:61624?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
        </connectors>
 
        <!-- Acceptors -->
        <acceptors>
-           <acceptor name="netty-ssl-acceptor">tcp://localhost:61616?sslEnabled=true;keyStorePath=/usr/local/java/jdk1.8.0_102/jre/lib/security/jks/keystore/host-keystore.jks;keyStorePassword=REDACTED_KEYSTORE_PASSWORD;tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
+           <acceptor name="netty-ssl-acceptor">tcp://localhost:61622?sslEnabled=true;keyStorePath=activemq.example.keystore;keyStorePassword=activemqexample;tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
+           <acceptor name="netty-acceptor">tcp://localhost:62622?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
        </acceptors>
 
       <!-- Clustering configuration -->
