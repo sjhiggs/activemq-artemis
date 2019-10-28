@@ -44,6 +44,7 @@ under the License.
                <allow-failback>true</allow-failback>
                <group-name>prod-pair-1</group-name>
 <!--           <quorum-size>3</quorum-size> -->
+<!--               <max-saved-replicated-journals-size>0</max-saved-replicated-journals-size>-->
             </slave>
          </replication>
       </ha-policy>
