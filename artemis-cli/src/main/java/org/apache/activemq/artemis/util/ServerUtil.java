@@ -84,7 +84,7 @@ public class ServerUtil {
    }
 
    public static boolean waitForServerToStart(int id, int timeout) throws InterruptedException {
-      return waitForServerToStart("tcp://localhost:" + (61616 + id), timeout);
+      return waitForServerToStart("tcp://localhost:" + (62616 + id), timeout);
    }
 
    public static boolean waitForServerToStart(String uri, long timeout) throws InterruptedException {
@@ -119,7 +119,7 @@ public class ServerUtil {
       ClientSession session = ((ActiveMQConnection) connection).getInitialSession();
       TransportConfiguration transportConfiguration = session.getSessionFactory().getConnectorConfiguration();
       String port = (String) transportConfiguration.getParams().get("port");
-      return Integer.valueOf(port) - 61616;
+      return Integer.valueOf(port) - 62616;
    }
 
    public static Connection getServerConnection(int server, Connection... connections) {
@@ -127,7 +127,7 @@ public class ServerUtil {
          ClientSession session = ((ActiveMQConnection) connection).getInitialSession();
          TransportConfiguration transportConfiguration = session.getSessionFactory().getConnectorConfiguration();
          String port = (String) transportConfiguration.getParams().get("port");
-         if (Integer.valueOf(port) == server + 61616) {
+         if (Integer.valueOf(port) == server + 62616) {
             return connection;
          }
       }
