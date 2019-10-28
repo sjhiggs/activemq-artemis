@@ -100,11 +100,12 @@ public class ReplicatedFailbackRepeated {
 
          }
 
-      } finally {
-
+      } catch(Exception e) {
          //for inspection of containers
          System.out.println("ERROR ERROR ERROR!!!  Waiting for container inspection...");
          Thread.sleep(Long.MAX_VALUE);
+
+      } finally {
          
          ServerUtil.killServer(server0);
          ServerUtil.killServer(server1);
