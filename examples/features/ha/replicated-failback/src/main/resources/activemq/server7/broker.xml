@@ -22,7 +22,7 @@ under the License.
 
    <core xmlns="urn:activemq:core">
 
-      <name>server0</name>
+      <name>server7</name>
 
       <journal-type>ASYNCIO</journal-type>
 
@@ -40,32 +40,33 @@ under the License.
 	  
       <ha-policy>
          <replication>
-            <master>
-               <!--  we need this for auto failback  -->
-               <check-for-live-server>true</check-for-live-server>
-               <group-name>prod-pair-1</group-name>
-               <vote-on-replication-failure>true</vote-on-replication-failure>
-            </master>
+            <slave>
+               <allow-failback>true</allow-failback>
+               <group-name>prod-pair-4</group-name>
+<!--           <quorum-size>3</quorum-size> -->
+            </slave>
          </replication>
       </ha-policy>
 
-       <connectors>
-           <connector name="netty-ssl-connector-1a">tcp://localhost:61616?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-           <connector name="netty-ssl-connector-1b">tcp://localhost:61617?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-           <connector name="netty-ssl-connector-2a">tcp://localhost:61618?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-           <connector name="netty-ssl-connector-2b">tcp://localhost:61619?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-           <connector name="netty-ssl-connector-3a">tcp://localhost:61620?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexamplee</connector>
-           <connector name="netty-ssl-connector-3b">tcp://localhost:61621?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-           <connector name="netty-ssl-connector-4a">tcp://localhost:61622?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-           <connector name="netty-ssl-connector-4b">tcp://localhost:61623?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-           <connector name="netty-ssl-connector-1w">tcp://localhost:61624?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-       </connectors>
+      <!-- Connectors -->
 
-       <!-- Acceptors -->
-       <acceptors>
-           <acceptor name="netty-ssl-acceptor">tcp://localhost:61616?sslEnabled=true;keyStorePath=activemq.example.keystore;keyStorePassword=activemqexample;tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
-           <acceptor name="netty-acceptor">tcp://localhost:62616?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
-       </acceptors>
+      <connectors>
+         <connector name="netty-ssl-connector-1a">tcp://localhost:61616?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-ssl-connector-1b">tcp://localhost:61617?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-ssl-connector-2a">tcp://localhost:61618?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-ssl-connector-2b">tcp://localhost:61619?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-ssl-connector-3a">tcp://localhost:61620?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexamplee</connector>
+         <connector name="netty-ssl-connector-3b">tcp://localhost:61621?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-ssl-connector-4a">tcp://localhost:61622?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-ssl-connector-4b">tcp://localhost:61623?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+         <connector name="netty-ssl-connector-1w">tcp://localhost:61624?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
+      </connectors>
+
+      <!-- Acceptors -->
+      <acceptors>
+         <acceptor name="netty-ssl-acceptor">tcp://localhost:61623?sslEnabled=true;keyStorePath=activemq.example.keystore;keyStorePassword=activemqexample;tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
+          <acceptor name="netty-acceptor">tcp://localhost:62623?tcpSendBufferSize=1048576;tcpReceiveBufferSize=1048576;protocols=CORE,AMQP,STOMP,HORNETQ,MQTT,OPENWIRE;useEpoll=true;amqpCredits=1000;amqpLowCredits=300</acceptor>
+      </acceptors>
 
       <!-- Clustering configuration -->
 
@@ -104,19 +105,19 @@ under the License.
       <!-- Static cluster test connections -->
 
       <cluster-connections>
-         <cluster-connection name="prod1-cluster">
-            <connector-ref>netty-ssl-connector-1a</connector-ref>
+         <cluster-connection name="prod1-cluster-4b">
+            <connector-ref>netty-ssl-connector-4b</connector-ref>
             <static-connectors>
+               <connector-ref>netty-ssl-connector-1a</connector-ref>
                <connector-ref>netty-ssl-connector-1b</connector-ref>
-<!--
                <connector-ref>netty-ssl-connector-2a</connector-ref>
                <connector-ref>netty-ssl-connector-2b</connector-ref>
                <connector-ref>netty-ssl-connector-3a</connector-ref>
                <connector-ref>netty-ssl-connector-3b</connector-ref>
                <connector-ref>netty-ssl-connector-4a</connector-ref>
-               <connector-ref>netty-ssl-connector-4b</connector-ref>
+<!--               <connector-ref>netty-ssl-connector-4b</connector-ref> -->
                <connector-ref>netty-ssl-connector-1w</connector-ref>
--->
+
             </static-connectors>
          </cluster-connection>
       </cluster-connections>
@@ -146,7 +147,7 @@ under the License.
 
 
       <security-settings>
-	 <security-setting match="#">
+         <security-setting match="#">
             <permission type="createNonDurableQueue" roles="app-amq-prod-system-admins"/>
             <permission type="deleteNonDurableQueue" roles="app-amq-prod-system-admins"/>
             <permission type="createDurableQueue" roles="app-amq-prod-system-admins"/>
@@ -159,7 +160,7 @@ under the License.
             <permission type="manage" roles="app-amq-prod-system-admins,app-amq-prod-system-operators"/>
          </security-setting>
 
-	 <security-setting match="ServerFilter">
+         <security-setting match="ServerFilter">
             <permission type="createDurableQueue" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
             <permission type="consume" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
             <permission type="browse" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
@@ -167,7 +168,7 @@ under the License.
             <permission type="manage" roles="app-amq-prod-system-admins"/>
          </security-setting>
 
-	 <security-setting match="exampleQueue">
+         <security-setting match="exampleQueue">
             <permission type="createDurableQueue" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
             <permission type="consume" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
             <permission type="browse" roles="app-amq-prod-system-admins,app-amq-prod-serverfilter"/>
