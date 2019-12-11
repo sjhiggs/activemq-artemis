@@ -70,13 +70,13 @@ public class ReplicatedFailbackRepeated {
          server1 = ServerUtil.startServer(baseDir + "/target/server1", "server1", 1, 0);
 
          //remainder of servers are only for quorum/cluster testing
-//         server2 = ServerUtil.startServer(baseDir + "/target/server2", "server2", 2, 30000);
-//         server3 = ServerUtil.startServer(baseDir + "/target/server3", "server3", 3, 0);
-//         server4 = ServerUtil.startServer(baseDir + "/target/server4", "server4", 4, 30000);
-//         server5 = ServerUtil.startServer(baseDir + "/target/server5", "server5", 5, 0);
-//         server6 = ServerUtil.startServer(baseDir + "/target/server6", "server6", 6, 30000);
-//         server7 = ServerUtil.startServer(baseDir + "/target/server7", "server7", 7, 0);
-//         server8 = ServerUtil.startServer(baseDir + "/target/server8", "server8", 8, 30000);
+         server2 = ServerUtil.startServer(baseDir + "/target/server2", "server2", 2, 30000);
+         server3 = ServerUtil.startServer(baseDir + "/target/server3", "server3", 3, 0);
+         server4 = ServerUtil.startServer(baseDir + "/target/server4", "server4", 4, 30000);
+         server5 = ServerUtil.startServer(baseDir + "/target/server5", "server5", 5, 0);
+         server6 = ServerUtil.startServer(baseDir + "/target/server6", "server6", 6, 30000);
+         server7 = ServerUtil.startServer(baseDir + "/target/server7", "server7", 7, 0);
+         server8 = ServerUtil.startServer(baseDir + "/target/server8", "server8", 8, 30000);
 
 
          for (int i = 0; i < new Integer(numTests); i++) {
@@ -84,19 +84,19 @@ public class ReplicatedFailbackRepeated {
             System.out.println("------------------------------\ncurrent test iterator:: " + i + "\n------------------------------");
 
             //allow server1 to fully replicate with server0 before killing server0 again
-//            assertFullClusterState();
-            assertSinglePairClusterState();
+            assertFullClusterState();
+//            assertSinglePairClusterState();
 
 
             //TEST 1: kill the master, server0 is now unavailable, server1 becomes live
             ServerUtil.killServer(server0);
-//            assertFailoverClusterState();
-            assertSinglePairFailoverClusterState();
+            assertFailoverClusterState();
+//            assertSinglePairFailoverClusterState();
 
             //TEST 2: start up the master, server0 should be live, server1 should be backup
             server0 = ServerUtil.startServer(baseDir + "/target/server0", "server0", 0, 120000);
-//            assertFullClusterState();
-            assertSinglePairClusterState();
+            assertFullClusterState();
+//            assertSinglePairClusterState();
 
          }
 
@@ -109,13 +109,13 @@ public class ReplicatedFailbackRepeated {
          
          ServerUtil.killServer(server0);
          ServerUtil.killServer(server1);
-//         ServerUtil.killServer(server2);
-//         ServerUtil.killServer(server3);
-//         ServerUtil.killServer(server4);
-//         ServerUtil.killServer(server5);
-//         ServerUtil.killServer(server6);
-//         ServerUtil.killServer(server7);
-//         ServerUtil.killServer(server8);
+         ServerUtil.killServer(server2);
+         ServerUtil.killServer(server3);
+         ServerUtil.killServer(server4);
+         ServerUtil.killServer(server5);
+         ServerUtil.killServer(server6);
+         ServerUtil.killServer(server7);
+         ServerUtil.killServer(server8);
       }
    }
 

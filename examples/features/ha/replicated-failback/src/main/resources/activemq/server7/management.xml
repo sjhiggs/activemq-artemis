@@ -16,5 +16,5 @@
   ~ limitations under the License.
   -->
 <management-context xmlns="http://activemq.org/schema">
-   <connector connector-port="1599" connector-host="0.0.0.0"/>
+   <connector connector-port="1799" connector-host="0.0.0.0"/>
 </management-context>

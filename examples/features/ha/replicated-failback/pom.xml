@@ -197,7 +197,7 @@ under the License.
                      <clientClass>org.apache.activemq.artemis.jms.example.ReplicatedFailbackRepeated</clientClass>
                      <args>
                         <param>${basedir}</param>
-                        <param>500</param>
+                        <param>1000</param>
                      </args>
                   </configuration>
                </execution>

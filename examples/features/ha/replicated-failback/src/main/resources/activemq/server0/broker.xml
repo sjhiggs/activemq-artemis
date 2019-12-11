@@ -54,7 +54,7 @@ under the License.
            <connector name="netty-ssl-connector-1b">tcp://localhost:61617?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
            <connector name="netty-ssl-connector-2a">tcp://localhost:61618?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
            <connector name="netty-ssl-connector-2b">tcp://localhost:61619?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
-           <connector name="netty-ssl-connector-3a">tcp://localhost:61620?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexamplee</connector>
+           <connector name="netty-ssl-connector-3a">tcp://localhost:61620?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
            <connector name="netty-ssl-connector-3b">tcp://localhost:61621?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
            <connector name="netty-ssl-connector-4a">tcp://localhost:61622?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
            <connector name="netty-ssl-connector-4b">tcp://localhost:61623?sslEnabled=true;trustStorePath=activemq.example.truststore;trustStorePassword=activemqexample</connector>
@@ -108,7 +108,6 @@ under the License.
             <connector-ref>netty-ssl-connector-1a</connector-ref>
             <static-connectors>
                <connector-ref>netty-ssl-connector-1b</connector-ref>
-<!--
                <connector-ref>netty-ssl-connector-2a</connector-ref>
                <connector-ref>netty-ssl-connector-2b</connector-ref>
                <connector-ref>netty-ssl-connector-3a</connector-ref>
@@ -116,7 +115,6 @@ under the License.
                <connector-ref>netty-ssl-connector-4a</connector-ref>
                <connector-ref>netty-ssl-connector-4b</connector-ref>
                <connector-ref>netty-ssl-connector-1w</connector-ref>
--->
             </static-connectors>
          </cluster-connection>
       </cluster-connections>
